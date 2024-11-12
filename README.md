@@ -2,6 +2,8 @@
 
 A modern, responsive web application for managing tasks and tracking time. Built with Node.js, Express, SQLite, and EJS.
 
+## This is a learning exercise in using Cline (with Claude 3.5 Sonnet) to do all the coding. Human input was limited to prompting and course correcting (eg in the VS Code terminal environment reminding the AI that && doesn't work etc)
+
 ## Features
 
 - User Authentication (Register/Login/Logout)
