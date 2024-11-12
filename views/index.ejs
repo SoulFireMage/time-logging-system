@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+    <div class="container">
+        <h1><%= title %></h1>
+        
+        <div id="userStatus">
+            <p>Status: <span id="loginStatus">Not logged in</span></p>
+            <p id="userInfo" style="display: none;">Welcome back, <span id="username"></span>!</p>
+        </div>
+
+        <div id="authForms">
+            <div id="registerSection">
+                <h2>Create Account</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <input type="text" 
+                               name="username" 
+                               placeholder="Choose a username" 
+                               required 
+                               autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <input type="email" 
+                               name="email" 
+                               placeholder="Enter your email" 
+                               required 
+                               autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" 
+                               name="password" 
+                               placeholder="Choose a password" 
+                               required 
+                               autocomplete="new-password">
+                    </div>
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+
+            <div id="loginSection">
+                <h2>Welcome Back</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <input type="text" 
+                               name="username" 
+                               placeholder="Username" 
+                               required 
+                               autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" 
+                               name="password" 
+                               placeholder="Password" 
+                               required 
+                               autocomplete="current-password">
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+        </div>
+
+        <button id="logoutButton" style="display: none;">Logout</button>
+
+        <div id="message"></div>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

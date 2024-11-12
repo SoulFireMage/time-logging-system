@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Registration, Login, and Dashboard</title>
+</head>
+<body>
+    <h1>Test Registration, Login, and Dashboard</h1>
+    <div id="registerResult"></div>
+    <div id="loginResult"></div>
+    <div id="dashboardResult"></div>
+    <div id="logoutResult"></div>
+
+    <script>
+        async function testAll() {
+            const testUser = {
+                username: 'testuser2',
+                email: 'testuser2@example.com',
+                password: 'password123'
+            };
+
+            try {
+                // Register
+                const registerResponse = await fetch('http://localhost:3000/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testUser),
+                });
+                const registerData = await registerResponse.json();
+                document.getElementById('registerResult').textContent = 'Register: ' + JSON.stringify(registerData, null, 2);
+
+                // Login
+                const loginResponse = await fetch('http://localhost:3000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username: testUser.username, password: testUser.password }),
+                });
+                const loginData = await loginResponse.json();
+                document.getElementById('loginResult').textContent = 'Login: ' + JSON.stringify(loginData, null, 2);
+
+                if (loginData.token) {
+                    // Access dashboard
+                    const dashboardResponse = await fetch('http://localhost:3000/dashboard', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + loginData.token,
+                        },
+                    });
+                    const dashboardData = await dashboardResponse.json();
+                    document.getElementById('dashboardResult').textContent = 'Dashboard: ' + JSON.stringify(dashboardData, null, 2);
+
+                    // Logout
+                    const logoutResponse = await fetch('http://localhost:3000/auth/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + loginData.token,
+                        },
+                    });
+                    const logoutData = await logoutResponse.json();
+                    document.getElementById('logoutResult').textContent = 'Logout: ' + JSON.stringify(logoutData, null, 2);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Run the test when the page loads
+        window.onload = testAll;
+    </script>
+</body>
+</html>

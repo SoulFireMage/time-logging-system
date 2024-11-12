@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Task Management</title>
+</head>
+<body>
+    <h1>Test Task Management</h1>
+    <div id="loginResult"></div>
+    <div id="createTaskResult"></div>
+    <div id="getTasksResult"></div>
+    <div id="updateTaskResult"></div>
+    <div id="deleteTaskResult"></div>
+
+    <script>
+        let token;
+        let createdTaskId;
+
+        async function testTaskManagement() {
+            const testUser = {
+                username: 'testuser2',
+                password: 'password123'
+            };
+
+            try {
+                // Login
+                const loginResponse = await fetch('http://localhost:3000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testUser),
+                });
+
+                const loginData = await loginResponse.json();
+                document.getElementById('loginResult').textContent = 'Login: ' + JSON.stringify(loginData, null, 2);
+                token = loginData.token;
+
+                if (token) {
+                    // Create a task
+                    const newTask = {
+                        title: 'Test Task',
+                        description: 'This is a test task',
+                        dueDate: '2023-12-31'
+                    };
+
+                    const createTaskResponse = await fetch('http://localhost:3000/tasks', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(newTask)
+                    });
+
+                    const createTaskData = await createTaskResponse.json();
+                    document.getElementById('createTaskResult').textContent = 'Create Task: ' + JSON.stringify(createTaskData, null, 2);
+                    createdTaskId = createTaskData.id;
+
+                    // Get all tasks
+                    const getTasksResponse = await fetch('http://localhost:3000/tasks', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+
+                    const getTasksData = await getTasksResponse.json();
+                    document.getElementById('getTasksResult').textContent = 'Get Tasks: ' + JSON.stringify(getTasksData, null, 2);
+
+                    // Update the created task
+                    const updatedTask = {
+                        title: 'Updated Test Task',
+                        description: 'This task has been updated',
+                        dueDate: '2024-01-31'
+                    };
+
+                    const updateTaskResponse = await fetch(`http://localhost:3000/tasks/${createdTaskId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify(updatedTask)
+                    });
+
+                    const updateTaskData = await updateTaskResponse.json();
+                    document.getElementById('updateTaskResult').textContent = 'Update Task: ' + JSON.stringify(updateTaskData, null, 2);
+
+                    // Delete the task
+                    const deleteTaskResponse = await fetch(`http://localhost:3000/tasks/${createdTaskId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+
+                    const deleteTaskData = await deleteTaskResponse.json();
+                    document.getElementById('deleteTaskResult').textContent = 'Delete Task: ' + JSON.stringify(deleteTaskData, null, 2);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Run the test when the page loads
+        window.onload = testTaskManagement;
+    </script>
+</body>
+</html>

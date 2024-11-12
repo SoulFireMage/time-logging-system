@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard Access and Task Management</title>
+</head>
+<body>
+    <h1>Test Dashboard Access and Task Management</h1>
+    <div id="loginResult"></div>
+    <div id="dashboardResult"></div>
+    <div id="taskManagement">
+        <h2>Task Management</h2>
+        <form id="addTaskForm">
+            <input type="text" id="taskTitle" placeholder="Task Title" required>
+            <textarea id="taskDescription" placeholder="Task Description"></textarea>
+            <input type="date" id="taskDueDate">
+            <button type="submit">Add Task</button>
+        </form>
+        <h3>Tasks</h3>
+        <div id="taskList"></div>
+    </div>
+    <button id="logoutButton">Logout</button>
+
+    <script>
+        let token;
+
+        async function apiRequest(url, method = 'GET', body = null) {
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    },
+                    body: body ? JSON.stringify(body) : null
+                });
+                if (response.status === 401) {
+                    console.log('Unauthorized access, redirecting to login');
+                    token = null;
+                    document.getElementById('loginResult').textContent = 'Session expired. Please log in again.';
+                    return null;
+                }
+                return response;
+            } catch (error) {
+                console.error('API request error:', error);
+                return null;
+            }
+        }
+
+        async function testDashboardAccess() {
+            const testUser = {
+                username: 'testuser2',
+                password: 'password123'
+            };
+
+            try {
+                // Login
+                const loginResponse = await apiRequest('http://localhost:3000/auth/login', 'POST', testUser);
+                if (!loginResponse) {
+                    document.getElementById('loginResult').textContent = 'Login failed: No response from server';
+                    return;
+                }
+                const loginData = await loginResponse.json();
+                document.getElementById('loginResult').textContent = 'Login: ' + JSON.stringify(loginData, null, 2);
+                console.log('Login response:', loginData);
+
+                if (loginData.token) {
+                    token = loginData.token;
+                    // Access dashboard
+                    const dashboardResponse = await apiRequest('http://localhost:3000/dashboard');
+                    if (dashboardResponse) {
+                        const dashboardData = await dashboardResponse.text();
+                        document.getElementById('dashboardResult').textContent = 'Dashboard accessed successfully';
+                        console.log('Dashboard response:', dashboardData);
+                        await fetchTasks();
+                        await testAddTask();
+                    } else {
+                        document.getElementById('dashboardResult').textContent = 'Failed to access dashboard';
+                    }
+                } else {
+                    document.getElementById('loginResult').textContent = 'Login failed: No token received';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('dashboardResult').textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function fetchTasks() {
+            try {
+                const response = await apiRequest('http://localhost:3000/tasks');
+                if (!response) return;
+                const tasks = await response.json();
+                console.log('Fetched tasks:', tasks);
+                const taskList = document.getElementById('taskList');
+                taskList.innerHTML = '';
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<p>No tasks found. Add a new task to get started!</p>';
+                } else {
+                    tasks.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.innerHTML = `
+                            <h4>${task.title}</h4>
+                            <p>${task.description}</p>
+                            <p>Due: ${new Date(task.due_date).toLocaleDateString()}</p>
+                            <button onclick="deleteTask(${task.id})">Delete</button>
+                        `;
+                        taskList.appendChild(taskElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        }
+
+        async function testAddTask() {
+            const newTask = {
+                title: 'Test Task',
+                description: 'This is a test task',
+                dueDate: '2023-12-31'
+            };
+            
+            try {
+                const response = await apiRequest('http://localhost:3000/tasks', 'POST', newTask);
+                if (!response) return;
+                if (response.ok) {
+                    console.log('Task added successfully');
+                    await fetchTasks();
+                } else {
+                    console.error('Failed to add task:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error adding task:', error);
+            }
+        }
+
+        async function deleteTask(id) {
+            try {
+                const response = await apiRequest(`http://localhost:3000/tasks/${id}`, 'DELETE');
+                if (!response) return;
+                if (response.ok) {
+                    console.log('Task deleted successfully');
+                    await fetchTasks();
+                } else {
+                    console.error('Failed to delete task:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+
+        document.getElementById('logoutButton').addEventListener('click', async () => {
+            try {
+                const response = await apiRequest('http://localhost:3000/auth/logout', 'POST');
+                if (!response) return;
+                if (response.ok) {
+                    console.log('Logout successful');
+                    token = null;
+                    document.getElementById('loginResult').textContent = 'Logged out';
+                    document.getElementById('dashboardResult').textContent = '';
+                    document.getElementById('taskList').innerHTML = '';
+                } else {
+                    console.error('Logout failed:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error during logout:', error);
+            }
+        });
+
+        // Run the test when the page loads
+        window.onload = testDashboardAccess;
+    </script>
+</body>
+</html>
